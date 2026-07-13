@@ -2,44 +2,21 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const db = require('../db');
+const { get } = require('../db');
 
 router.post('/login', (req, res) => {
     const { user_no, name, password, role } = req.body;
-
-    if (!user_no || !name || !password || !role) {
-        return res.status(400).json({ message: 'è¯·å¡«å†™å®Œæ•´ä¿¡æ¯' });
-    }
-
-    const user = db.prepare('SELECT * FROM users WHERE user_no = ? AND role = ?').get(user_no, role);
-
-    if (!user) {
-        return res.status(401).json({ message: 'è´¦å·æˆ–è§’è‰²ä¸å­˜åœ¨' });
-    }
-
-    if (user.name !== name) {
-        return res.status(401).json({ message: 'å§“åä¸åŒ¹é…' });
-    }
-
-    if (!bcrypt.compareSync(password, user.password)) {
-        return res.status(401).json({ message: 'å¯†ç é”™è¯¯' });
-    }
-
+    if (!user_no || !name || !password || !role) return res.status(400).json({ message: 'ÇëÌîĞ´ÍêÕûĞÅÏ¢' });
+    const user = get('SELECT * FROM users WHERE user_no = ? AND role = ?', [user_no, role]);
+    if (!user) return res.status(401).json({ message: 'ÕËºÅ»ò½ÇÉ«²»´æÔÚ' });
+    if (user.name !== name) return res.status(401).json({ message: 'ĞÕÃû²»Æ¥Åä' });
+    if (!bcrypt.compareSync(password, user.password)) return res.status(401).json({ message: 'ÃÜÂë´íÎó' });
     const token = jwt.sign(
         { id: user.id, user_no: user.user_no, name: user.name, role: user.role },
-        process.env.JWT_SECRET,
+        process.env.JWT_SECRET || 'lab_booking_2026_secret_key',
         { expiresIn: '7d' }
     );
-
-    res.json({
-        message: 'ç™»å½•æˆåŠŸ',
-        token,
-        user: {
-            user_no: user.user_no,
-            name: user.name,
-            role: user.role
-        }
-    });
+    res.json({ message: 'µÇÂ¼³É¹¦', token, user: { user_no: user.user_no, name: user.name, role: user.role } });
 });
 
 module.exports = router;
