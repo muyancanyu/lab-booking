@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartLab - 机房预约系统</title>
+    <style>
+        :root {
+            --bg: #f0f5fb;
+            --white: #ffffff;
+            --primary: #4a90d9;
+            --primary-light: #e8f1fb;
+            --primary-dark: #3a7bc8;
+            --success: #52c41a;
+            --warning: #fa8c16;
+            --danger: #ff4d4f;
+            --text-main: #2c3e50;
+            --text-secondary: #5a6c7d;
+            --text-muted: #94a3b8;
+            --border: #e8edf2;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.08);
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .icon-svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; flex-shrink: 0; }
+        .icon-svg-lg { width: 28px; height: 28px; }
+        .icon-svg-xl { width: 36px; height: 36px; }
+
+        .topnav {
+            background: var(--white); border-bottom: 1px solid var(--border);
+            padding: 0 40px; height: 60px; display: flex; align-items: center;
+            justify-content: space-between; position: sticky; top: 0; z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+        .topnav .brand { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; color: var(--primary); }
+        .topnav .brand .brand-icon {
+            width: 34px; height: 34px; background: var(--primary); border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; color: #fff;
+        }
+        .topnav .nav-links { display: flex; gap: 4px; list-style: none; }
+        .topnav .nav-links li {
+            padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 13px;
+            font-weight: 500; color: var(--text-secondary); transition: var(--transition);
+            display: flex; align-items: center; gap: 6px;
+        }
+        .topnav .nav-links li:hover { background: var(--primary-light); color: var(--primary); }
+        .topnav .nav-links li.active { background: var(--primary); color: #fff; }
+        .topnav .nav-links li .icon-svg { width: 16px; height: 16px; }
+        .topnav .user-area { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-secondary); }
+        .topnav .user-area .avatar {
+            width: 32px; height: 32px; border-radius: 50%; background: var(--primary);
+            color: #fff; display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 14px;
+        }
+        .topnav .logout-link { color: var(--danger); cursor: pointer; font-size: 12px; margin-left: 8px; font-weight: 500; }
+        .topnav .logout-link:hover { text-decoration: underline; }
+
+        .main-container { max-width: 960px; margin: 0 auto; padding: 32px 24px 60px; }
+        .page-header { margin-bottom: 28px; }
+        .page-header h2 { font-size: 24px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+
+        .card { background: var(--white); border-radius: var(--radius-md); padding: 28px; box-shadow: var(--shadow-md); border: 1px solid var(--border); margin-bottom: 20px; transition: var(--transition); }
+        .card:hover { box-shadow: var(--shadow-lg); }
+
+        .login-wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .login-card { width: 420px; background: var(--white); border-radius: var(--radius-lg); padding: 44px 36px; box-shadow: var(--shadow-lg); text-align: center; }
+        .login-card .login-icon {
+            width: 60px; height: 60px; background: var(--primary); border-radius: 16px;
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-bottom: 16px; color: #fff; box-shadow: 0 6px 24px rgba(74,144,217,0.25);
+        }
+        .login-card h1 { font-size: 22px; font-weight: 700; color: var(--text-main); }
+        .login-card .subtitle { font-size: 13px; color: var(--text-muted); margin: 6px 0 28px; }
+
+        .role-tabs { display: flex; gap: 6px; background: #f5f8fc; border-radius: 25px; padding: 4px; margin-bottom: 24px; }
+        .role-tab {
+            flex: 1; padding: 10px 8px; border: none; background: transparent;
+            border-radius: 22px; cursor: pointer; font-size: 13px; font-weight: 500;
+            color: var(--text-secondary); transition: var(--transition);
+            display: flex; align-items: center; justify-content: center; gap: 4px;
+        }
+        .role-tab .icon-svg { width: 16px; height: 16px; }
+        .role-tab.active { background: #fff; color: var(--primary); box-shadow: var(--shadow-sm); font-weight: 600; }
+
+        .form-group { margin-bottom: 18px; text-align: left; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; letter-spacing: 0.5px; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 12px 14px; border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm); font-size: 14px; font-family: inherit;
+            color: var(--text-main); background: #fafbfc; transition: var(--transition); outline: none;
+        }
+        .form-group input:focus, .form-group select:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(74,144,217,0.08); }
+        .form-group input::placeholder { color: #c0c8d0; }
+        .form-group select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%2394a3b8'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+
+        .btn { padding: 11px 22px; border: none; border-radius: 22px; cursor: pointer; font-weight: 600; font-size: 14px; font-family: inherit; transition: var(--transition); display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
+        .btn .icon-svg { width: 16px; height: 16px; }
+        .btn-primary { width: 100%; background: var(--primary); color: #fff; padding: 13px; font-size: 15px; box-shadow: 0 4px 16px rgba(74,144,217,0.25); }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(74,144,217,0.35); }
+        .btn-success { background: var(--success); color: #fff; }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-outline { background: #fff; border: 1.5px solid var(--border); color: var(--text-secondary); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 16px; }
+        .btn-xs { padding: 4px 10px; font-size: 11px; border-radius: 12px; }
+        .btn:hover { transform: translateY(-1px); }
+
+        .room-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+        .room-card {
+            background: var(--white); border-radius: var(--radius-md); padding: 24px 20px;
+            text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+            transition: var(--transition); position: relative; overflow: hidden;
+        }
+        .room-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+        .room-card .room-icon-wrap {
+            width: 48px; height: 48px; border-radius: 12px; display: inline-flex;
+            align-items: center; justify-content: center; margin-bottom: 12px;
+        }
+        .room-card:nth-child(1) .room-icon-wrap { background: #e8f1fb; color: #4a90d9; }
+        .room-card:nth-child(2) .room-icon-wrap { background: #f0e6ff; color: #7c5cfc; }
+        .room-card:nth-child(3) .room-icon-wrap { background: #e6f9ee; color: #52c41a; }
+        .room-card .room-name { font-size: 16px; font-weight: 700; color: var(--text-main); }
+        .room-card .room-capacity { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        .room-card .capacity-bar { height: 5px; background: #f0f3f7; border-radius: 3px; margin-top: 12px; overflow: hidden; }
+        .room-card .capacity-fill { height: 100%; border-radius: 3px; }
+        .room-card:nth-child(1) .capacity-fill { width: 20%; background: #4a90d9; }
+        .room-card:nth-child(2) .capacity-fill { width: 50%; background: #7c5cfc; }
+        .room-card:nth-child(3) .capacity-fill { width: 100%; background: #52c41a; }
+
+        .table-wrapper { background: var(--white); border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+        table { width: 100%; border-collapse: collapse; }
+        table th { padding: 13px 16px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; text-align: left; background: #fafbfc; border-bottom: 1px solid var(--border); }
+        table td { padding: 13px 16px; font-size: 13px; color: var(--text-secondary); border-bottom: 1px solid #f5f7fa; }
+        table tbody tr:hover td { background: #fafcfd; }
+        table tbody tr:last-child td { border-bottom: none; }
+
+        .badge { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; }
+        .badge-pending { background: #fff7e6; color: #d46b08; }
+        .badge-approved { background: #f0fff4; color: #389e0d; }
+        .badge-rejected { background: #fff1f0; color: #cf1322; }
+        .badge-dot { width: 6px; height: 6px; border-radius: 50%; }
+        .badge-pending .badge-dot { background: #d46b08; }
+        .badge-approved .badge-dot { background: #389e0d; }
+        .badge-rejected .badge-dot { background: #cf1322; }
+
+        .empty-state { text-align: center; padding: 50px 20px; }
+        .empty-state .icon-wrap { width: 56px; height: 56px; border-radius: 50%; background: #f0f3f7; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--text-muted); }
+        .empty-state p { color: var(--text-muted); font-size: 14px; }
+
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .gap-2 { gap: 8px; }
+        .mt-3 { margin-top: 16px; }
+        .mb-3 { margin-bottom: 16px; }
+        .text-center { text-align: center; }
+        .action-btns { display: flex; gap: 6px; }
+
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: fadeInUp 0.35s ease-out; }
+
+        .toast { position: fixed; top: 24px; right: 24px; z-index: 9999; padding: 12px 22px; border-radius: 22px; font-weight: 600; font-size: 13px; color: #fff; box-shadow: 0 6px 24px rgba(0,0,0,0.15); animation: fadeInUp 0.3s ease-out; }
+        .toast-success { background: #52c41a; }
+        .toast-error { background: #ff4d4f; }
+        .toast-info { background: #4a90d9; }
+    </style>
+</head>
+<body>
+
+<svg style="display:none;">
+    <symbol id="icon-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></symbol>
+    <symbol id="icon-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></symbol>
+    <symbol id="icon-teacher" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="14" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="17" x2="9" y2="21"/><line x1="15" y1="17" x2="15" y2="21"/></symbol>
+    <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 2l7 4v5c0 5-3 9-7 11-4-2-7-6-7-11V6l7-4z"/></symbol>
+    <symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></symbol>
+    <symbol id="icon-list" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
+    <symbol id="icon-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+    <symbol id="icon-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></symbol>
+    <symbol id="icon-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="8 12 11 15 16 9"/></symbol>
+    <symbol id="icon-plus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></symbol>
+    <symbol id="icon-users" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M3 19c0-3 2.5-5 6-5s6 2 6 5"/><circle cx="18" cy="7" r="2.5"/><path d="M15 15c1.5 0 3 1 3 3"/></symbol>
+    <symbol id="icon-display" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><line x1="8" y1="20" x2="16" y2="20"/><line x1="12" y1="17" x2="12" y2="20"/></symbol>
+    <symbol id="icon-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/><path d="M5 6l1 14a1 1 0 001 1h10a1 1 0 001-1l1-14"/></symbol>
+    <symbol id="icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+    <symbol id="icon-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
+    <symbol id="icon-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></symbol>
+    <symbol id="icon-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></symbol>
+</svg>
+
+<div class="login-wrapper" id="loginPage">
+    <div class="login-card animate-in">
+        <div class="login-icon"><svg class="icon-svg icon-svg-xl" style="color:#fff;"><use href="#icon-monitor"/></svg></div>
+        <h1>SmartLab</h1>
+        <p class="subtitle">机房预约管理系统</p>
+        <div class="role-tabs" id="roleSelector">
+            <button class="role-tab active" data-role="student"><svg class="icon-svg"><use href="#icon-user"/></svg> 学生</button>
+            <button class="role-tab" data-role="teacher"><svg class="icon-svg"><use href="#icon-teacher"/></svg> 教师</button>
+            <button class="role-tab" data-role="admin"><svg class="icon-svg"><use href="#icon-shield"/></svg> 管理员</button>
+        </div>
+        <form onsubmit="handleLogin(event)">
+            <div class="form-group"><label id="idLabel">学号</label><input type="text" id="userId" placeholder="请输入学号" required></div>
+            <div class="form-group"><label>姓名</label><input type="text" id="userName" placeholder="请输入姓名" required></div>
+            <div class="form-group"><label>登录密码</label><input type="password" id="userPassword" placeholder="请输入密码" required></div>
+            <button type="submit" class="btn btn-primary">登 录</button>
+        </form>
+    </div>
+</div>
+
+<div class="hidden" id="mainPage">
+    <nav class="topnav">
+        <div class="brand"><div class="brand-icon"><svg class="icon-svg" style="color:#fff;"><use href="#icon-monitor"/></svg></div>SmartLab</div>
+        <ul class="nav-links" id="navLinks"></ul>
+        <div class="user-area"><div class="avatar" id="navAvatar">张</div><span id="navName">张三</span><span class="logout-link" onclick="logout()"><svg class="icon-svg" style="width:14px;height:14px;display:inline;vertical-align:-2px;"><use href="#icon-logout"/></svg> 退出</span></div>
+    </nav>
+    <div class="main-container"><div class="page-header"><h2 id="pageTitle"><svg class="icon-svg icon-svg-lg" style="color:var(--primary);"><use href="#icon-calendar"/></svg><span id="pageTitleText">申请预约</span></h2></div><div id="pageBody" class="animate-in"></div></div>
+</div>
+
+<script>
+    const API = 'http://localhost:3000/api';
+    let token = '';
+    let currentUser = null;
+
+    const navIcons = { apply:'icon-calendar', myOrders:'icon-list', allOrders:'icon-grid', cancelOrder:'icon-x', review:'icon-check', addAccount:'icon-plus', viewAccounts:'icon-users', viewRooms:'icon-display', clearOrders:'icon-trash' };
+    const pageTitleIcons = { apply:'icon-calendar', myOrders:'icon-list', allOrders:'icon-grid', cancelOrder:'icon-x', review:'icon-check', addAccount:'icon-plus', viewAccounts:'icon-users', viewRooms:'icon-display', clearOrders:'icon-trash' };
+
+    document.querySelectorAll('.role-tab').forEach(tab => {
+        tab.addEventListener('click', function(){
+            document.querySelectorAll('.role-tab').forEach(t=>t.classList.remove('active'));
+            this.classList.add('active');
+            const r = this.dataset.role;
+            document.getElementById('idLabel').textContent = r==='student'?'学号':r==='teacher'?'职工号':'管理员账号';
+            document.getElementById('userId').placeholder = r==='student'?'请输入学号':r==='teacher'?'请输入职工号':'请输入管理员账号';
+        });
+    });
+
+    async function api(url, options = {}) {
+        const headers = { 'Content-Type': 'application/json', ...options.headers };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const res = await fetch(API + url, { ...options, headers });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || '请求失败');
+        return data;
+    }
+
+    async function handleLogin(e) {
+        e.preventDefault();
+        const role = document.querySelector('.role-tab.active').dataset.role;
+        const user_no = document.getElementById('userId').value.trim();
+        const name = document.getElementById('userName').value.trim();
+        const password = document.getElementById('userPassword').value.trim();
+        try {
+            const data = await api('/login', { method:'POST', body:JSON.stringify({ user_no, name, password, role }) });
+            token = data.token;
+            currentUser = data.user;
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('mainPage').classList.remove('hidden');
+            document.getElementById('navAvatar').textContent = currentUser.name.charAt(0);
+            document.getElementById('navName').textContent = currentUser.name;
+            buildNav();
+            const def = currentUser.role==='student'?'apply':currentUser.role==='teacher'?'allOrders':'viewRooms';
+            navigateTo(def);
+        } catch(err) { showToast(err.message, 'error'); }
+    }
+
+    function buildNav() {
+        const nav = document.getElementById('navLinks');
+        const map = {
+            student: [{label:'申请预约',action:'apply'},{label:'我的预约',action:'myOrders'},{label:'全部预约',action:'allOrders'},{label:'取消预约',action:'cancelOrder'}],
+            teacher: [{label:'全部预约',action:'allOrders'},{label:'审核预约',action:'review'}],
+            admin: [{label:'添加账号',action:'addAccount'},{label:'查看账号',action:'viewAccounts'},{label:'查看机房',action:'viewRooms'},{label:'清空预约',action:'clearOrders'}],
+        };
+        const items = map[currentUser.role] || [];
+        nav.innerHTML = items.map((item,i) => `<li class="${i===0?'active':''}" data-action="${item.action}" onclick="navigateTo('${item.action}',this)"><svg class="icon-svg"><use href="#${navIcons[item.action]}"/></svg>${item.label}</li>`).join('');
+    }
+
+    function navigateTo(action, navItem) {
+        if (navItem) { document.querySelectorAll('#navLinks li').forEach(l=>l.classList.remove('active')); navItem.classList.add('active'); }
+        const body = document.getElementById('pageBody');
+        body.classList.remove('animate-in'); void body.offsetWidth; body.classList.add('animate-in');
+        document.querySelector('#pageTitle svg use').setAttribute('href','#'+(pageTitleIcons[action]||'icon-calendar'));
+        switch(action) {
+            case 'apply': renderApply(); break;
+            case 'myOrders': loadMyOrders(); break;
+            case 'allOrders': loadAllOrders(); break;
+            case 'cancelOrder': loadCancelOrders(); break;
+            case 'review': loadReview(); break;
+            case 'addAccount': renderAddAccount(); break;
+            case 'viewAccounts': loadAccounts(); break;
+            case 'viewRooms': loadRooms(); break;
+            case 'clearOrders': renderClearOrders(); break;
+        }
+    }
+
+    function setPage(title, html) { document.getElementById('pageTitleText').textContent = title; document.getElementById('pageBody').innerHTML = html; }
+
+    function renderApply() {
+        const dates = getNextWeekDates();
+        setPage('申请预约', `
+            <div class="card" style="max-width:520px;">
+                <div class="form-group"><label>选择机房</label><select id="applyRoom" onchange="updateRoomStatus()"></select></div>
+                <div class="form-group"><label>预约日期</label><select id="applyDate" onchange="updateRoomStatus()">${dates.map(d=>`<option value="${d.value}">${d.label}</option>`).join('')}</select></div>
+                <div class="form-group"><label>预约时段</label><select id="applyPeriod" onchange="updateRoomStatus()"><option value="上午">上午（8:00-12:00）</option><option value="下午">下午（14:00-18:00）</option></select></div>
+                <div id="roomStatus" style="font-size:12px;color:var(--text-muted);margin-bottom:16px;"></div>
+                <button class="btn btn-primary" onclick="submitApply()">提交预约</button>
+            </div>
+        `);
+        loadRoomsAndStatus();
+    }
+
+    let roomStatusData = [];
+
+    async function loadRoomsAndStatus() {
+        try {
+            const data = await api('/rooms/status');
+            roomStatusData = data;
+            document.getElementById('applyRoom').innerHTML = data.map(r=>`<option value="${r.id}">${r.name} · 容量${r.capacity}人</option>`).join('');
+            updateRoomStatus();
+        } catch(err) {}
+    }
+
+    function updateRoomStatus() {
+        const roomId = +document.getElementById('applyRoom').value;
+        const date = document.getElementById('applyDate').value;
+        const period = document.getElementById('applyPeriod').value;
+        const room = roomStatusData.find(r => r.id === roomId);
+        if (!room) return;
+        const p = room.periods.find(p => p.date === date && p.period === period);
+        const approved = p ? p.approved : 0;
+        const pending = p ? p.pending : 0;
+        const left = room.capacity - approved;
+        document.getElementById('roomStatus').innerHTML = `
+            已通过: <strong style="color:var(--success);">${approved}人</strong> &nbsp; 审核中: <strong style="color:var(--warning);">${pending}人</strong> &nbsp; 剩余: <strong style="color:${left > 0 ? 'var(--primary)' : 'var(--danger)'};">${left}个</strong> / 容量${room.capacity}人
+        `;
+    }
+
+    async function submitApply() {
+        const room_id = +document.getElementById('applyRoom').value;
+        const date = document.getElementById('applyDate').value;
+        const period = document.getElementById('applyPeriod').value;
+        try {
+            await api('/student/apply', { method:'POST', body:JSON.stringify({ room_id, date, period }) });
+            showToast('预约申请成功','success');
+            setTimeout(()=>navigateTo('myOrders'),600);
+        } catch(err) { showToast(err.message,'error'); }
+    }
+
+    async function loadMyOrders() {
+        setPage('我的预约','<div class="card"><p>加载中...</p></div>');
+        try {
+            const orders = await api('/student/my-orders');
+            setPage('我的预约', renderOrderTable(orders, true));
+        } catch(err) { showToast(err.message,'error'); }
+    }
+
+    async function loadAllOrders() {
+        setPage('全部预约','<div class="card"><p>加载中...</p></div>');
+        try {
+            const url = currentUser.role==='teacher'?'/teacher/all-orders':'/student/all-orders';
+            const orders = await api(url);
+            setPage('全部预约', renderOrderTable(orders, false, currentUser.role==='teacher'));
+        } catch(err) { showToast(err.message,'error'); }
+    }
+
+    async function loadCancelOrders() {
+        setPage('取消预约','<div class="card"><p>加载中...</p></div>');
+        try {
+            const orders = await api('/student/my-orders');
+            const cancelable = orders.filter(o=>o.status!=='rejected');
+            setPage('取消预约', cancelable.length ? renderOrderTable(cancelable, true) : '<div class="card empty-state"><div class="icon-wrap"><svg class="icon-svg"><use href="#icon-x"/></svg></div><p>没有可取消的预约</p></div>');
+        } catch(err) { showToast(err.message,'error'); }
+    }
+
+    async function loadReview() {
+        setPage('审核预约','<div class="card"><p>加载中...</p></div>');
+        try {
+            const orders = await api('/teacher/all-orders');
+            const pending = orders.filter(o=>o.status==='pending');
+            setPage('审核预约', pending.length ? renderOrderTable(pending, false, true) : '<div class="card empty-state"><div class="icon-wrap"><svg class="icon-svg"><use href="#icon-check"/></svg></div><p>暂无待审核的预约</p></div>');
+        } catch(err) { showToast(err.message,'error'); }
+    }
+
+    function renderOrderTable(orders, showCancel, showReview) {
+        if (!orders.length) return '<div class="card empty-state"><div class="icon-wrap"><svg class="icon-svg"><use href="#icon-file"/></svg></div><p>暂无记录</p></div>';
+        const sm = { pending:'审核中', approved:'已通过', rejected:'未通过' };
+        const bm = { pending:'badge-pending', approved:'badge-approved', rejected:'badge-rejected' };
+        return `<div class="table-wrapper"><table><thead><tr><th>编号</th><th>学生</th><th>机房</th><th>日期</th><th>时段</th><th>状态</th>${showCancel?'<th>操作</th>':''}${showReview?'<th>审核</th>':''}</tr></thead><tbody>${orders.map(o=>`<tr>
+            <td style="color:var(--primary);font-weight:600;">#${o.id}</td>
+            <td><strong>${o.student_name}</strong><br><span style="font-size:11px;color:var(--text-muted);">${o.student_id}</span></td>
+            <td>${o.room_name}</td><td>${o.date}</td><td>${o.period}</td>
+            <td><span class="badge ${bm[o.status]}"><span class="badge-dot"></span>${sm[o.status]}</span></td>
+            ${showCancel?`<td>${o.status!=='rejected'?`<button class="btn btn-danger btn-xs" onclick="cancelOrder(${o.id})">取消</button>`:'-'}</td>`:''}
+            ${showReview?`<td class="action-btns">${o.status==='pending'?`<button class="btn btn-success btn-xs" onclick="reviewOrder(${o.id},'approved')">通过</button><button class="btn btn-danger btn-xs" onclick="reviewOrder(${o.id},'rejected')">拒绝</button>`:'-'}</td>`:''}
+        </tr>`).join('')}</tbody></table></div>`;
+    }
+
+    async function cancelOrder(id) {
+        if (!confirm('确认取消？')) return;
+        try { await api('/student/cancel/'+id, { method:'DELETE' }); showToast('已取消','info'); loadCancelOrders(); }
+        catch(err) { showToast(err.message,'error'); }
+    }
+
+    async function reviewOrder(id, status) {
+        try { await api('/teacher/review/'+id, { method:'PUT', body:JSON.stringify({status}) }); showToast(status==='approved'?'已通过':'已拒绝','success'); loadReview(); }
+        catch(err) { showToast(err.message,'error'); }
+    }
+
+    function renderAddAccount() {
+        setPage('添加账号', `
+            <div class="card" style="max-width:520px;">
+                <div class="form-group"><label>账号类型</label><select id="accountType" onchange="onAccountTypeChange()"><option value="student">学生</option><option value="teacher">教师</option></select></div>
+                <div class="form-group"><label id="accountIdLabel">学号</label><input type="text" id="accountId" placeholder="请输入学号" required></div>
+                <div class="form-group"><label>姓名</label><input type="text" id="accountName" placeholder="请输入姓名" required></div>
+                <div class="form-group"><label>初始密码</label><input type="password" id="accountPassword" placeholder="请设置密码" required></div>
+                <button class="btn btn-primary" onclick="addAccount()" style="background:var(--success);">创建账号</button>
+            </div>
+        `);
+    }
+
+    function onAccountTypeChange() {
+        const t = document.getElementById('accountType').value;
+        document.getElementById('accountIdLabel').textContent = t==='student'?'学号':'职工号';
+        document.getElementById('accountId').placeholder = t==='student'?'请输入学号':'请输入职工号';
+    }
+
+    async function addAccount() {
+        const role = document.getElementById('accountType').value;
+        const user_no = document.getElementById('accountId').value.trim();
+        const name = document.getElementById('accountName').value.trim();
+        const password = document.getElementById('accountPassword').value.trim();
+        try {
+            await api('/admin/add-account', { method:'POST', body:JSON.stringify({ user_no, name, password, role }) });
+            showToast('账号创建成功','success');
+            ['accountId','accountName','accountPassword'].forEach(x=>document.getElementById(x).value='');
+        } catch(err) { showToast(err.message,'error'); }
+    }
+
+    async function loadAccounts() {
+        setPage('查看账号','<div class="card"><p>加载中...</p></div>');
+        try {
+            const users = await api('/admin/accounts');
+            setPage('查看账号', `
+                <div class="table-wrapper"><table><thead><tr><th>编号</th><th>姓名</th><th>角色</th><th>创建时间</th></tr></thead><tbody>
+                ${users.map(u=>`<tr><td style="color:var(--primary);font-weight:600;">${u.user_no}</td><td>${u.name}</td><td><span class="badge ${u.role==='student'?'badge-approved':'badge-pending'}"><span class="badge-dot"></span>${u.role==='student'?'学生':'教师'}</span></td><td>${u.created_at}</td></tr>`).join('')}
+                </tbody></table></div>
+            `);
+        } catch(err) { showToast(err.message,'error'); }
+    }
+
+    async function loadRooms() {
+        setPage('机房信息','<div class="card"><p>加载中...</p></div>');
+        try {
+            const rooms = await api('/rooms');
+            setPage('机房信息', `
+                <div class="room-grid">${rooms.map(r=>`<div class="room-card"><div class="room-icon-wrap"><svg class="icon-svg"><use href="#icon-display"/></svg></div><div class="room-name">${r.name}</div><div class="room-capacity">最大容量 <strong>${r.capacity}人</strong></div><div class="room-capacity">${r.equipment}</div><div class="capacity-bar"><div class="capacity-fill"></div></div></div>`).join('')}</div>
+            `);
+        } catch(err) { showToast(err.message,'error'); }
+    }
+
+    function renderClearOrders() {
+        setPage('清空预约', `
+            <div class="card text-center" style="padding:40px;">
+                <div class="icon-wrap" style="color:var(--danger);background:#fff1f0;margin-bottom:16px;"><svg class="icon-svg" style="width:28px;height:28px;"><use href="#icon-alert"/></svg></div>
+                <h3 style="margin-bottom:8px;">确认清空所有预约记录？</h3>
+                <p style="color:var(--text-muted);margin-bottom:20px;">此操作不可恢复</p>
+                <button class="btn btn-danger" onclick="clearAllOrders()">确认清空</button>
+                <button class="btn btn-outline" style="margin-left:8px;" onclick="navigateTo('clearOrders')">取消</button>
+            </div>
+        `);
+    }
+
+    async function clearAllOrders() {
+        if (!confirm('确定要清空所有预约记录吗？此操作不可恢复！')) return;
+        try { const r = await api('/admin/clear-orders', { method:'DELETE' }); showToast(r.message,'info'); renderClearOrders(); } catch(err) { showToast(err.message,'error'); }
+    }
+
+    function logout() {
+        token = ''; currentUser = null;
+        document.getElementById('mainPage').classList.add('hidden');
+        document.getElementById('loginPage').classList.remove('hidden');
+        ['userId','userName','userPassword'].forEach(x=>document.getElementById(x).value='');
+    }
+
+    function getNextWeekDates() {
+        const dates = [], today = new Date(), dow = today.getDay(), offset = dow===0?1:(8-dow);
+        const mon = new Date(today); mon.setDate(today.getDate()+(offset>7?offset-7:offset));
+        const wd = ['周一','周二','周三','周四','周五'];
+        for(let i=0;i<5;i++) { const d=new Date(mon); d.setDate(mon.getDate()+i); dates.push({value:d.toISOString().split('T')[0],label:`${d.toISOString().split('T')[0]} · ${wd[i]}`}); }
+        return dates;
+    }
+
+    function showToast(msg, type) {
+        const t = document.createElement('div'); t.className=`toast toast-${type}`; t.textContent=msg;
+        document.body.appendChild(t);
+        setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(()=>t.remove(),300);},2000);
+    }
+</script>
+</body>
+</html>
