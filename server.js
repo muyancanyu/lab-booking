@@ -10,6 +10,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/public/index.html');
+});
+
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok' });
+});
+
 app.use('/api', require('./routes/auth'));
 app.use('/api/student', require('./routes/student'));
 app.use('/api/teacher', require('./routes/teacher'));
@@ -49,6 +57,6 @@ app.get('/api/rooms/status', (req, res) => {
     res.json(result);
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`服务已启动: http://localhost:${PORT}`);
 });
