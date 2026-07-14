@@ -42,8 +42,13 @@ app.get('/api/rooms/status', (req, res) => {
     res.json(result);
 });
 
-initDb().then(() => {
-    app.listen(PORT, () => {
-        console.log(`服务已启动: http://localhost:${PORT}`);
+initDb()
+    .then(() => {
+        app.listen(PORT, () => {
+            console.log(`服务已启动: http://localhost:${PORT}`);
+        });
+    })
+    .catch(err => {
+        console.error('数据库初始化失败:', err);
+        process.exit(1);
     });
-});
